@@ -40,7 +40,8 @@ class CodeAttackConverter(Converter):
       (spaces, tabs, newlines) collapses to a single token boundary and leading
       and trailing whitespace is dropped. Hyphens are preserved inside tokens.
       Round-trips losslessly only when words are separated by single spaces.
-    - ``PYTHON_STACK`` splits on ``[\\s\\-]+``, so it collapses whitespace runs
+    - ``PYTHON_STACK`` splits on ``[\\s\\-]+`` and drops empty tokens, so it
+      collapses whitespace runs and strips leading and trailing delimiters
       exactly like ``PYTHON_LIST`` *and additionally* consumes hyphens as
       delimiters. It also reverses token order (the template's ``decode()``
       pops the stack). A prompt that yields a single token is exploded into
@@ -273,7 +274,7 @@ class CodeAttackConverter(Converter):
                 raise ValueError(f"Unsupported encoding: {self._encoding!r}")
 
     def _encode_python_stack(self, prompt: str) -> str:
-        words = re.split(r"[\s\-]+", prompt)
+        words = [word for word in re.split(r"[\s\-]+", prompt) if word]
         if len(words) == 1:
             words = list(words[0])
         words = words[::-1]

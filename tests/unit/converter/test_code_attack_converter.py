@@ -297,6 +297,66 @@ async def test_single_word_python_stack_does_not_split_chars():
     assert recovered == prompt
 
 
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        " hello world ",
+        "\n\thello  world\t\n",
+        "-hello-world-",
+        " - hello - world - ",
+    ],
+    ids=["outer-spaces", "outer-newlines-tabs", "outer-hyphens", "mixed-outer-delimiters"],
+)
+async def test_python_stack_drops_leading_and_trailing_delimiters(prompt: str) -> None:
+    """Leading/trailing whitespace and hyphens must not emit empty stack entries."""
+    converter = CodeAttackConverter(template=Template.PYTHON_STACK)
+    result = await converter.convert_async(prompt=prompt)
+
+    decoded = _decode_literals(result.output_text, "my_stack.append")[::-1]
+    assert decoded == ["hello", "world"]
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        " hello",
+        "hello-",
+        " hello ",
+        "\thello\n",
+        "-hello-",
+        " - hello - ",
+    ],
+    ids=[
+        "leading-space",
+        "trailing-hyphen",
+        "outer-spaces",
+        "outer-tabs-newlines",
+        "outer-hyphens",
+        "mixed-outer-delimiters",
+    ],
+)
+async def test_python_stack_single_token_with_outer_delimiters_explodes_into_chars(prompt: str) -> None:
+    """A single token surrounded by delimiters still yields one token and explodes into chars."""
+    converter = CodeAttackConverter(template=Template.PYTHON_STACK)
+    result = await converter.convert_async(prompt=prompt)
+
+    decoded = _decode_literals(result.output_text, "my_stack.append")[::-1]
+    assert decoded == list("hello")
+
+
+@pytest.mark.parametrize(
+    "prompt",
+    ["   ", "\t\n", "---", " - - "],
+    ids=["spaces-only", "tabs-newlines-only", "hyphens-only", "mixed-delimiters-only"],
+)
+async def test_python_stack_delimiter_only_prompt_emits_no_appends(prompt: str) -> None:
+    """Delimiter-only prompts must produce no appends, matching '' and PYTHON_LIST."""
+    converter = CodeAttackConverter(template=Template.PYTHON_STACK)
+    result = await converter.convert_async(prompt=prompt)
+
+    assert _decode_literals(result.output_text, "my_stack.append") == []
+
+
 async def test_output_type_is_text():
     converter = CodeAttackConverter(template=Template.PYTHON_LIST_VERBOSE)
     result = await converter.convert_async(prompt="any prompt")
