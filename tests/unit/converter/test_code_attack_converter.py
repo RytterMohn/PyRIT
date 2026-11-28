@@ -307,7 +307,7 @@ async def test_single_word_python_stack_does_not_split_chars():
     ],
     ids=["outer-spaces", "outer-newlines-tabs", "outer-hyphens", "mixed-outer-delimiters"],
 )
-async def test_python_stack_drops_leading_and_trailing_delimiters(prompt: str) -> None:
+async def test_python_stack_drops_leading_and_trailing_delimiters_async(prompt: str) -> None:
     """Leading/trailing whitespace and hyphens must not emit empty stack entries."""
     converter = CodeAttackConverter(template=Template.PYTHON_STACK)
     result = await converter.convert_async(prompt=prompt)
@@ -335,7 +335,7 @@ async def test_python_stack_drops_leading_and_trailing_delimiters(prompt: str) -
         "mixed-outer-delimiters",
     ],
 )
-async def test_python_stack_single_token_with_outer_delimiters_explodes_into_chars(prompt: str) -> None:
+async def test_python_stack_single_token_with_outer_delimiters_explodes_into_chars_async(prompt: str) -> None:
     """A single token surrounded by delimiters still yields one token and explodes into chars."""
     converter = CodeAttackConverter(template=Template.PYTHON_STACK)
     result = await converter.convert_async(prompt=prompt)
@@ -349,7 +349,7 @@ async def test_python_stack_single_token_with_outer_delimiters_explodes_into_cha
     ["   ", "\t\n", "---", " - - "],
     ids=["spaces-only", "tabs-newlines-only", "hyphens-only", "mixed-delimiters-only"],
 )
-async def test_python_stack_delimiter_only_prompt_emits_no_appends(prompt: str) -> None:
+async def test_python_stack_delimiter_only_prompt_emits_no_appends_async(prompt: str) -> None:
     """Delimiter-only prompts must produce no appends, matching '' and PYTHON_LIST."""
     converter = CodeAttackConverter(template=Template.PYTHON_STACK)
     result = await converter.convert_async(prompt=prompt)
